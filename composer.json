@@ -1,5 +1,5 @@
 {
-    "name": "ultrono/laravelshoppingcart-1",
+    "name": "nocodelab/laravelshoppingcart",
     "description": "Laravel 5 and above Shopping cart",
     "keywords": ["laravel", "shopping cart", "cart"],
     "license": "MIT",
