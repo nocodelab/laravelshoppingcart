@@ -68,6 +68,10 @@ class Cart
      * @var
      */
     protected $currentItemId;
+    /**
+     * @var null
+     */
+    private $currentItem;
 
     /**
      * our object constructor
