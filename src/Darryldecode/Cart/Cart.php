@@ -682,6 +682,22 @@ class Cart
     }
 
     /**
+     * get the cart grouping orders by delivery date
+     *
+     * @return CartCollection
+     */
+    public function getContentByDeliveryDate()
+    {
+        return $this->getContent()
+                ->sortBy(function ($cartItem) {
+                    return strtotime($cartItem->attributes->delivery_date);
+                })
+                ->groupBy(function ($cartItem) {
+                    return $cartItem->attributes->delivery_date;
+                });
+    }
+
+    /**
      * check if cart is empty
      *
      * @return bool
