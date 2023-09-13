@@ -64,7 +64,7 @@ class Cart
 
     /**
      * This holds the currently added item id in cart for association
-     * 
+     *
      * @var
      */
     protected $currentItemId;
@@ -689,12 +689,75 @@ class Cart
     public function getContentByDeliveryDate()
     {
         return $this->getContent()
-                ->sortBy(function ($cartItem) {
-                    return strtotime($cartItem->attributes->delivery_date);
-                })
-                ->groupBy(function ($cartItem) {
-                    return $cartItem->attributes->delivery_date;
-                });
+            ->sortBy(function ($cartItem) {
+                return strtotime($cartItem->attributes->delivery_date);
+            })
+            ->groupBy(function ($cartItem) {
+                return $cartItem->attributes->delivery_date;
+            });
+    }
+
+    /**
+     * Validate the models in the cart to check whether are available or existing
+     *
+     * @return void
+     */
+    public function validateCartContent(){
+        $cartItems = $this->getContent();
+        $validationResult = [
+            'success' => true,
+            'removedItems' => [],
+            'updatedItems' => [],
+        ];
+
+        foreach ($cartItems as $key => $cartItem){
+            try {
+                $cartItem->associatedModel->refresh();
+                if($cartItem->associatedModel->disabled){
+                    $validationResult['removedItems'][] = [
+                        'id' => $cartItem->associatedModel->id,
+                        'name' => $cartItem->name
+                    ];
+                    $this->remove($cartItem->id);
+                }
+
+                if(config('shop.items_availability')){
+                    if($cartItemModel->isAvailable()){
+                        if($cartItem->quantity > $cartItem->associatedModel->availability){
+                            $this->update($cartItem->id, [
+                                'quantity' => $cartItem->associatedModel->availability
+                            ]);
+                            $validationResult['updatedItems'][] = [
+                                'id' => $cartItem->associatedModel->id,
+                                'name' => $cartItem->name
+                            ];
+                        }
+                    }else{
+                        $validationResult['removedItems'][] = [
+                            'id' => $cartItem->associatedModel->id,
+                            'name' => $cartItem->name
+                        ];
+                        $this->remove($cartItem->id);
+                        $validationResult['removedItems'][] = [
+                            'id' => $cartItem->associatedModel->id,
+                            'name' => $cartItem->name
+                        ];
+                    }
+                }
+
+            }catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e){
+                $this->remove($cartItem->id);
+                $validationResult['removedItems'][] = [
+                    'id' => $cartItem->associatedModel->id,
+                    'name' => $cartItem->name
+                ];
+            }
+        }
+
+        if(count($validationResult['removedItems']) > 0 || $validationResult['updatedItems'] > 0){
+            $validationResult['success'] = false;
+        }
+        return $validationResult;
     }
 
     /**
