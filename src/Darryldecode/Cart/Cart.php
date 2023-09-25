@@ -722,7 +722,7 @@ class Cart
                 }
 
                 if(config('shop.items_availability')){
-                    if($cartItemModel->isAvailable()){
+                    if($cartItem->associatedModel->isAvailable()){
                         if($cartItem->quantity > $cartItem->associatedModel->availability){
                             $this->update($cartItem->id, [
                                 'quantity' => $cartItem->associatedModel->availability
