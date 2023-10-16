@@ -698,6 +698,63 @@ class Cart
     }
 
     /**
+     * Returns the cart vat
+     *
+     * @return void
+     */
+    public function calculateCartTaxes()
+    {
+        $cartItems = $this->getContent();
+        $taxes = 0.0;
+        foreach ($cartItems as $key => $cartItem){
+            if($cartItem->attributes->has('is_vat_inclusive') && $cartItem->attributes->has('vat_percentage') && $cartItem->attributes->is_vat_inclusive == false){
+                $taxes += calculateVATAmount($cartItem->price, $cartItem->attributes->vat_percentage) * $cartItem->quantity;
+            }
+        }
+        return $taxes;
+    }
+
+    /**
+     * the new total in which conditions are already applied
+     *
+     * @return float
+     */
+    public function getTotalWithTaxes()
+    {
+        $cartItems = $this->getContent();
+        $subTotal = 0;
+
+        $subTotal = $this->getSubTotal(false) + $this->calculateCartTaxes();
+
+        $newTotal = 0.00;
+
+        $process = 0;
+
+        $conditions = $this
+            ->getConditions()
+            ->filter(function (CartCondition $cond) {
+                return $cond->getTarget() === 'total';
+            });
+
+        // if no conditions were added, just return the sub total
+        if (!$conditions->count()) {
+            return Helpers::formatValue($subTotal, $this->config['format_numbers'], $this->config);
+        }
+
+        $conditions
+            ->each(function (CartCondition $cond) use ($subTotal, &$newTotal, &$process) {
+                $toBeCalculated = ($process > 0) ? $newTotal : $subTotal;
+
+                $newTotal = $cond->applyCondition($toBeCalculated);
+
+                $process++;
+            });
+
+        return Helpers::formatValue($newTotal, $this->config['format_numbers'], $this->config);
+    }
+
+
+    /**
      * Validate the models in the cart to check whether are available or existing
      *
      * @return void

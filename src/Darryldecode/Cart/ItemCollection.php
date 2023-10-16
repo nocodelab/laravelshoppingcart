@@ -42,6 +42,36 @@ class ItemCollection extends Collection
         return Helpers::formatValue($this->price * $this->quantity, $this->config['format_numbers'], $this->config);
     }
 
+    /**
+     * get the sum of price with taxes
+     *
+     * @return mixed|null
+     */
+    public function getPriceSumWithTaxes()
+    {
+        if($this->attributes->has('is_vat_inclusive') && $this->attributes->has('vat_percentage') && $this->attributes->is_vat_inclusive == false){
+            $priceSum = addVat($this->price, $this->attributes->vat_percentage) * $this->quantity;
+            return Helpers::formatValue($priceSum, $this->config['format_numbers'], $this->config);
+        }else{
+            return Helpers::formatValue($this->price * $this->quantity, $this->config['format_numbers'], $this->config);
+        }
+    }
+
+    /**
+     * get the price with taxes
+     *
+     * @return mixed|null
+     */
+    public function getPriceWithTaxes()
+    {
+        if($this->attributes->has('is_vat_inclusive') && $this->attributes->has('vat_percentage') && $this->attributes->is_vat_inclusive == false){
+            $priceSum = addVat($this->price, $this->attributes->vat_percentage);
+            return Helpers::formatValue($priceSum, $this->config['format_numbers'], $this->config);
+        }else{
+            return Helpers::formatValue($this->price, $this->config['format_numbers'], $this->config);
+        }
+    }
+
     public function __get($name)
     {
         if ($this->has($name) || $name == 'model') {
