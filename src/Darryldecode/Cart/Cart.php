@@ -708,7 +708,7 @@ class Cart
         $taxes = 0.0;
         foreach ($cartItems as $key => $cartItem){
             if($cartItem->attributes->has('is_vat_inclusive') && $cartItem->attributes->has('vat_percentage') && $cartItem->attributes->is_vat_inclusive == false){
-                $taxes += calculateVATAmount($cartItem->price, $cartItem->attributes->vat_percentage) * $cartItem->quantity;
+                $taxes +=  $cartItem->getPriceSumWithTaxes() - $cartItem->getPriceSum();
             }
         }
         return $taxes;
