@@ -1,5 +1,6 @@
 <?php namespace Darryldecode\Cart;
 
+use App\Models\Shop\Pricelist;
 use Darryldecode\Cart\Exceptions\InvalidConditionException;
 use Darryldecode\Cart\Exceptions\InvalidItemException;
 use Darryldecode\Cart\Helpers\Helpers;
@@ -769,6 +770,15 @@ class Cart
 
         foreach ($cartItems as $key => $cartItem){
             try {
+                $price = $cartItem->associatedModel->getPrice();
+                $this->update($cartItem->id, [
+                    'measurement_unit' => $price->measurement_unit,
+                    'price' => $price->amount,
+                    'is_vat_inclusive' => $price->is_vat_inclusive,
+                    'vat_percentage' => $price->vat_percentage,
+                    'pricelist_id' => Pricelist::activePricelistID(),
+                ]);
+
                 $cartItem->associatedModel->refresh();
                 if($cartItem->associatedModel->disabled){
                     $validationResult['removedItems'][] = [
@@ -782,7 +792,10 @@ class Cart
                     if($cartItem->associatedModel->isAvailable()){
                         if($cartItem->quantity > $cartItem->associatedModel->availability){
                             $this->update($cartItem->id, [
-                                'quantity' => $cartItem->associatedModel->availability
+                                'quantity' => [
+                                    'relative' => false,
+                                    'value' => $cartItem->associatedModel->availability
+                                ]
                             ]);
                             $validationResult['updatedItems'][] = [
                                 'id' => $cartItem->associatedModel->id,
