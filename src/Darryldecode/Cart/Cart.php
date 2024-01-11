@@ -97,22 +97,45 @@ class Cart
     }
 
     /**
+     * Returns the Cart session key
+     *
+     * @return string
+     */
+    public static function getCartSessionKey()
+    {
+        if (!auth()->check()){
+            return "guest_" . \Session::getId();
+        }else{
+            return auth()->user()->id;
+        }
+    }
+
+    /**
      * sets the session key
      *
      * @param string $sessionKey the session key or identifier
      * @return $this|bool
      * @throws \Exception
      */
-    public function session($sessionKey)
+    public function session($sessionKey = null)
     {
-        if (!$sessionKey) throw new \Exception("Session key is required.");
-
-        $this->sessionKey = $sessionKey;
+        $this->sessionKey = $sessionKey ?? self::getCartSessionKey();
         $this->sessionKeyCartItems = $this->sessionKey . '_cart_items';
         $this->sessionKeyCartConditions = $this->sessionKey . '_cart_conditions';
 
         return $this;
     }
+
+//    public function session($sessionKey)
+//    {
+//        if (!$sessionKey) throw new \Exception("Session key is required.");
+//
+//        $this->sessionKey = $sessionKey;
+//        $this->sessionKeyCartItems = $this->sessionKey . '_cart_items';
+//        $this->sessionKeyCartConditions = $this->sessionKey . '_cart_conditions';
+//
+//        return $this;
+//    }
 
     /**
      * get instance name of the cart
@@ -698,6 +721,44 @@ class Cart
             });
     }
 
+
+    /**
+     * get the cart grouping orders by delivery date
+     *
+     * @return CartCollection
+     */
+    public function getContentByWarehouse()
+    {
+        return $this->getContent()
+            ->sortBy(function ($cartItem) {
+                return strtotime($cartItem->attributes->warehouse_name);
+            })
+            ->groupBy(function ($cartItem) {
+                return $cartItem->attributes->warehouse_name;
+            });
+    }
+
+    /**
+     * Returns the array of the warehouse ids
+     *
+     * @return array
+     */
+    public function getCartWarehouseIDs()
+    {
+        return $this->getContent()->pluck('attributes.warehouse_id')->unique()->toArray();
+    }
+
+    /**
+     * Returns the first Warehouse ID of the cart items (if any)
+     *
+     * @return array
+     */
+    public function getCartFirstWarehouseID()
+    {
+        return $this->getContent()->pluck('attributes.warehouse_id')->unique()->first();
+    }
+
+
     /**
      * Returns the cart vat
      *
@@ -788,7 +849,7 @@ class Cart
                     $this->remove($cartItem->id);
                 }
 
-                if(config('shop.items_availability')){
+                if(config('shop.items_availability') && !$cartItem->associatedModel->supplier->backorders_accepted){
                     if($cartItem->associatedModel->isAvailable()){
                         if($cartItem->quantity > $cartItem->associatedModel->availability){
                             $this->update($cartItem->id, [
