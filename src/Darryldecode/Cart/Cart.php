@@ -1,6 +1,7 @@
 <?php namespace Darryldecode\Cart;
 
 use App\Models\Shop\Pricelist;
+use App\Models\Shop\Warehouse;
 use Darryldecode\Cart\Exceptions\InvalidConditionException;
 use Darryldecode\Cart\Exceptions\InvalidItemException;
 use Darryldecode\Cart\Helpers\Helpers;
@@ -753,10 +754,23 @@ class Cart
      *
      * @return array
      */
-    public function getCartFirstWarehouseID()
+    public function getCartWarehouseID()
     {
         return $this->getContent()->pluck('attributes.warehouse_id')->unique()->first();
     }
+
+    /**
+     * Return the current cart warehouse details
+     *
+     * @return mixed
+     */
+    public function getCartWarehouse()
+    {
+        $cartWarehouseID = $this->getCartWarehouseID();
+        return Warehouse::find($cartWarehouseID);
+    }
+
+
 
 
     /**
