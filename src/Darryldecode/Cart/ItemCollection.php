@@ -72,6 +72,37 @@ class ItemCollection extends Collection
         }
     }
 
+    /**
+     * get the price without taxes
+     *
+     * @return mixed|null
+     */
+    public function getPriceWithoutTaxes()
+    {
+        if($this->attributes->has('is_vat_inclusive') && $this->attributes->has('vat_percentage') && $this->attributes->is_vat_inclusive == true){
+            $priceSum = removeVAT($this->price, $this->attributes->vat_percentage);
+            return Helpers::formatValue($priceSum, $this->config['format_numbers'], $this->config);
+        }else{
+            return Helpers::formatValue($this->price, $this->config['format_numbers'], $this->config);
+        }
+    }
+
+    /**
+     * get the sum of price without taxes
+     *
+     * @return mixed|null
+     */
+    public function getPriceSumWithoutTaxes()
+    {
+        if($this->attributes->has('is_vat_inclusive') && $this->attributes->has('vat_percentage') && $this->attributes->is_vat_inclusive == true){
+            $priceSum = removeVAT($this->price, $this->attributes->vat_percentage) * $this->quantity;
+            return Helpers::formatValue($priceSum, $this->config['format_numbers'], $this->config);
+        }else{
+            return Helpers::formatValue($this->price * $this->quantity, $this->config['format_numbers'], $this->config);
+        }
+    }
+
+
     public function __get($name)
     {
         if ($this->has($name) || $name == 'model') {
