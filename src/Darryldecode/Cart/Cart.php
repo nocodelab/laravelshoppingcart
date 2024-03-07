@@ -847,11 +847,15 @@ class Cart
             try {
                 $price = $cartItem->associatedModel->getPrice();
                 $this->update($cartItem->id, [
-                    'measurement_unit' => $price->measurement_unit,
                     'price' => $price->promo_amount ?? $price->amount,
-                    'is_vat_inclusive' => $price->promo_is_vat_inclusive ?? $price->is_vat_inclusive,
-                    'vat_percentage' => $price->vat_percentage,
-                    'pricelist_id' => Pricelist::activePricelistID(),
+                    'attributes' => array(
+                        'is_vat_inclusive' => $price->promo_is_vat_inclusive ?? $price->is_vat_inclusive,
+                        'vat_percentage' => $price->vat_percentage,
+                        'pricelist_id' => Pricelist::activePricelistID(),
+                        'measurement_unit' => $price->measurement_unit,
+                        'category_name' => $cartItem->associatedModel->category ? $cartItem->associatedModel?->category?->name : env('APP_NAME'),
+                        'timestamp' => time(),
+                    )
                 ]);
 
                 $cartItem->associatedModel->refresh();
