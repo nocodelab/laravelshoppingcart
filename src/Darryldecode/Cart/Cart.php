@@ -854,7 +854,7 @@ class Cart
                         'pricelist_id' => Pricelist::activePricelistID(),
                         'measurement_unit' => $price->measurement_unit,
                         'category_name' => $cartItem->associatedModel->category ? $cartItem->associatedModel?->category?->name : env('APP_NAME'),
-                        'timestamp' => time(),
+                        'timestamp' => $cartItem->attributes->timestamp,
                     )
                 ]);
 
