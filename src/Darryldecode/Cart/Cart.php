@@ -861,7 +861,7 @@ class Cart
                 ]);
 
                 $cartItem->associatedModel->refresh();
-                if($cartItem->associatedModel->disabled){
+                if($cartItem->associatedModel->disabled || $cartItem->associatedModel->discontinued){
                     $validationResult['removedItems'][] = [
                         'id' => $cartItem->associatedModel->id,
                         'name' => $cartItem->name
