@@ -42,6 +42,22 @@ class ItemCollection extends Collection
         return Helpers::formatValue($this->price * $this->quantity, $this->config['format_numbers'], $this->config);
     }
 
+
+    /**
+     * Returns the item total weight
+     *
+     * @return float|int|null
+     */
+    public function getTotalWeight()
+    {
+        if($this->attributes->has('gross_weight') && $this->attributes->gross_weight){
+            return round($this->attributes->gross_weight * $this->quantity,3);
+        }elseif($this->attributes->has('carton_weight') && $this->attributes->carton_weight && $this->attributes->has('pcs_per_carton') && $this->attributes->pcs_per_carton){
+            $cartons = ceil($this->quantity / $this->attributes->pcs_per_carton);
+            return round($this->attributes->carton_weight * $cartons,3);
+        }
+        return null;
+    }
     /**
      * get the sum of price with taxes
      *

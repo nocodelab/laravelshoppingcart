@@ -1,6 +1,9 @@
 <?php
 
 return [
+
+    'multi_tenancy' => env('SHOPPING_CART_MULTI_TENANCY', false),
+
     /*
      * ---------------------------------------------------------------
      * formatting

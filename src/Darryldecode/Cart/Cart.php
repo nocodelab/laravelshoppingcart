@@ -104,10 +104,14 @@ class Cart
      */
     public static function getCartSessionKey()
     {
+        if(config('shopping_cart.multi_tenancy')){
+            $tenancyPrefix = tenant('id') . '_';
+        }
+
         if (!auth()->check()){
-            return "guest_" . \Session::getId();
+            return $tenancyPrefix . "guest_" . \Session::getId();
         }else{
-            return auth()->user()->id;
+            return $tenancyPrefix . auth()->user()->id;
         }
     }
 
@@ -583,6 +587,22 @@ class Cart
     }
 
     /**
+     *  get cart weight
+     *
+     * @return mixed|string
+     */
+    public function getCartWeight()
+    {
+        $cart = $this->getContent();
+
+        $sum = $cart->sum(function ($item) {
+            return $item->getTotalWeight();
+        });
+
+        return Helpers::formatValue(floatval($sum), false, $this->config);
+    }
+
+    /**
      * get cart sub total without conditions
      * @param bool $formatted
      * @return float
@@ -857,6 +877,11 @@ class Cart
                         'warehouse_id' => $cartItem->attributes->warehouse_id ?? $cartItem->associatedModel?->warehouse_id,
                         'warehouse_name' => $cartItem->attributes->warehouse_name ?? $cartItem->associatedModel?->warehouse?->name,
                         'timestamp' => $cartItem->attributes->timestamp,
+                        'pcs_per_carton' => $cartItem->associatedModel->pcs_per_carton,
+                        'gross_weight' => $cartItem->associatedModel->gross_weight,
+                        'net_weight' => $cartItem->associatedModel->net_weight,
+                        'carton_weight' => $cartItem->associatedModel->carton_weight,
+                        'ean' => $cartItem->associatedModel->ean,
                     )
                 ]);
 
