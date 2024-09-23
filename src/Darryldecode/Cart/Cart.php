@@ -106,6 +106,8 @@ class Cart
     {
         if(config('shopping_cart.multi_tenancy')){
             $tenancyPrefix = tenant('id') . '_';
+        }else{
+            $tenancyPrefix = '';
         }
 
         if (!auth()->check()){
